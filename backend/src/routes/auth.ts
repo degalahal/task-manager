@@ -53,6 +53,7 @@ export default async function authRoutes(app: FastifyInstance) {
         id: true,
         name: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });
@@ -121,6 +122,7 @@ export default async function authRoutes(app: FastifyInstance) {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
         createdAt: user.createdAt,
       },
     });

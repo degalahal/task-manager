@@ -14,11 +14,17 @@ enum TaskStatus {
   DONE
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
   password  String
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
   tasks     Task[]
 }
@@ -27,6 +33,8 @@ model Task {
   id          String     @id @default(cuid())
   title       String
   description String?
+  deadline    DateTime?
+
   status      TaskStatus @default(TODO)
   userId      String
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)

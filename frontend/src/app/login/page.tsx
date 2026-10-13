@@ -43,7 +43,7 @@ export default function LoginPage() {
       }
 
       setMessage("Login successful! Redirecting...");
-      router.push("/tasks");
+      router.push("/welcome");
     } catch {
       setMessage(
         "Cannot connect to the backend. Make sure the server is running."
