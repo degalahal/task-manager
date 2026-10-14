@@ -1,15 +1,19 @@
 
+
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  Users,
   ListTodo,
   PlusCircle,
   CheckSquare,
+  LogOut,
 } from "lucide-react";
+import { useState } from "react";
+import { API_URL } from "@/lib/api";
+
 
 type SidebarProps = {
   onNavigate?: () => void;
@@ -20,12 +24,7 @@ const menuItems = [
     label: "Dashboard",
     href: "/welcome",
     icon: LayoutDashboard,
-  },
-  {
-    label: "Users",
-    href: "/users",
-    icon: Users,
-  },
+  },  
   {
     label: "Create Tasks",
     href: "/tasks/create",
@@ -40,6 +39,35 @@ const menuItems = [
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+const [loggingOut, setLoggingOut] = useState(false);
+const [logoutError, setLogoutError] = useState("");
+
+async function handleLogout() {
+  if (loggingOut) return;
+
+  setLoggingOut(true);
+  setLogoutError("");
+
+  try {
+    const response = await fetch(`${API_URL}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Logout failed. Please try again.");
+    }
+
+    router.replace("/login");
+    router.refresh();
+  } catch {
+    setLogoutError("Could not log out. Please check your connection and try again.");
+  } finally {
+    setLoggingOut(false);
+  }
+}
+
 
   return (
     <aside className="flex h-full min-h-screen w-64 shrink-0 flex-col bg-slate-950 px-4 py-6 text-white shadow-2xl">
@@ -84,6 +112,25 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
           );
         })}
       </nav>
+      
+<div className="mt-6">
+  <button
+    type="button"
+    onClick={handleLogout}
+    disabled={loggingOut}
+    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-300 transition hover:bg-red-950 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    <LogOut size={19} />
+    <span>{loggingOut ? "Logging out..." : "Logout"}</span>
+  </button>
+
+  {logoutError && (
+    <p role="alert" className="mt-2 px-3 text-sm text-red-300">
+      {logoutError}
+    </p>
+  )}
+</div>
+
 
       <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-4">
         <p className="text-sm font-semibold">Stay organized</p>

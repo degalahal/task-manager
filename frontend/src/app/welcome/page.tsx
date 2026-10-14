@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, X, CheckSquare, UserRound } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import { API_URL } from "@/lib/api";
 
-const API_URL = "http://localhost:4000";
 
 type User = {
   id: string;

@@ -3,7 +3,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Clock3, ListTodo } from "lucide-react";
+import {
+  CalendarDays,
+  Clock3,
+  ListTodo,
+  Menu,
+  X,
+} from "lucide-react";
+import Sidebar from "@/components/Sidebar";
+import { API_URL } from "@/lib/api";
 
 type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 
@@ -22,8 +30,6 @@ type User = {
   name: string;
   email: string;
 };
-
-const API_URL = "http://localhost:4000";
 
 const statusLabels: Record<TaskStatus, string> = {
   TODO: "To do",
@@ -48,6 +54,7 @@ export default function TasksPage() {
   const [error, setError] = useState("");
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadTasks = useCallback(async () => {
     const response = await fetch(`${API_URL}/api/tasks`, {
@@ -57,11 +64,15 @@ export default function TasksPage() {
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status === 401) {
+        router.replace("/login");
+      }
+
       throw new Error(data.message ?? "Unable to load tasks.");
     }
 
     setTasks(data as Task[]);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -114,6 +125,11 @@ export default function TasksPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          router.replace("/login");
+          return;
+        }
+
         throw new Error(data.message ?? "Unable to update task.");
       }
 
@@ -146,6 +162,11 @@ export default function TasksPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          router.replace("/login");
+          return;
+        }
+
         throw new Error(data.message ?? "Unable to delete task.");
       }
 
@@ -194,6 +215,41 @@ export default function TasksPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+      <header className="mx-auto mb-6 flex max-w-5xl items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((open) => !open)}
+            aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+            aria-expanded={sidebarOpen}
+            className="rounded-xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:bg-slate-100"
+          >
+            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+
+          <span className="text-sm font-semibold text-slate-700">
+            TaskFlow Workspace
+          </span>
+        </div>
+
+        <span className="text-sm text-slate-500">{user.name}</span>
+      </header>
+
+      {sidebarOpen && (
+        <>
+          <button
+            type="button"
+            aria-label="Close sidebar"
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-slate-950/40"
+          />
+
+          <div className="fixed inset-y-0 left-0 z-50">
+            <Sidebar onNavigate={() => setSidebarOpen(false)} />
+          </div>
+        </>
+      )}
+
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -246,15 +302,11 @@ export default function TasksPage() {
         )}
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-          <div className="mb-6 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">
-                Your tasks
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Review deadlines and update task status.
-              </p>
-            </div>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Your tasks</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Review deadlines and update task status.
+            </p>
           </div>
 
           {tasks.length === 0 ? (
@@ -262,9 +314,7 @@ export default function TasksPage() {
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
                 <ListTodo size={28} />
               </div>
-              <h3 className="font-semibold text-slate-900">
-                No tasks yet
-              </h3>
+              <h3 className="font-semibold text-slate-900">No tasks yet</h3>
               <p className="mt-2 text-sm text-slate-500">
                 Open the sidebar and choose Create Tasks to add your first task.
               </p>
@@ -319,7 +369,8 @@ export default function TasksPage() {
                         <div className="flex items-center gap-2 text-slate-500">
                           <Clock3 size={16} />
                           <span>
-                            Created {new Date(task.createdAt).toLocaleString("en-IN")}
+                            Created{" "}
+                            {new Date(task.createdAt).toLocaleString("en-IN")}
                           </span>
                         </div>
                       </div>
@@ -329,7 +380,10 @@ export default function TasksPage() {
                       <select
                         aria-label={`Status for ${task.title}`}
                         value={task.status}
-                        disabled={updatingTaskId === task.id}
+                        disabled={
+                          updatingTaskId === task.id ||
+                          deletingTaskId === task.id
+                        }
                         onChange={(event) =>
                           updateStatus(task, event.target.value as TaskStatus)
                         }

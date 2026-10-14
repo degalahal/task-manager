@@ -1,13 +1,67 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import TaskForm from "@/components/TaskForm";
+import { API_URL } from "@/lib/api";
 
 export default function CreateTaskPage() {
+  const router = useRouter();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAuthentication() {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          router.replace("/login");
+          return;
+        }
+
+        if (active) {
+          setIsAuthenticated(true);
+        }
+      } catch {
+        if (active) {
+          router.replace("/login");
+        }
+      } finally {
+        if (active) {
+          setCheckingAuth(false);
+        }
+      }
+    }
+
+    void checkAuthentication();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  if (checkingAuth) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-100">
+        <p className="text-slate-600">Checking your session...</p>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -22,9 +76,7 @@ export default function CreateTaskPage() {
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        <h1 className="text-xl font-bold text-slate-900">
-          TaskFlow
-        </h1>
+        <h1 className="text-xl font-bold text-slate-900">TaskFlow</h1>
       </header>
 
       {sidebarOpen && (

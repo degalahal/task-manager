@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { API_URL } from "@/lib/api";
 
 type User = {
   id: string;
@@ -22,7 +23,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/auth/me",
+        `${API_URL}/api/auth/me`,
         {
           method: "GET",
           credentials: "include",
