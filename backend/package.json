@@ -5,11 +5,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "dev": "tsx watch src/server.ts",
-  "generate": "prisma generate",
-  "build": "npm run generate && tsc",
-  "start": "node dist/server.js",
-  "postinstall": "prisma skills sync || exit 0"
+    "dev": "tsx watch src/server.ts",
+    "generate": "prisma generate",
+    "build": "npm run generate && tsc",
+    "start": "node dist/server.js",
+    "postinstall": "prisma skills sync || exit 0"
   },
   "keywords": [],
   "author": "",
