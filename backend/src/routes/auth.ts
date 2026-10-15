@@ -54,9 +54,7 @@ export default async function authRoutes(app: FastifyInstance) {
         });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 12);
-
-      
+      const hashedPassword = await bcrypt.hash(password, 12);      
 let user;
 
 try {
@@ -156,7 +154,7 @@ try {
       reply.setCookie("token", token, {
         httpOnly: true,
         secure: env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "none",
         path: "/",
         maxAge: 3600,
       });
@@ -179,7 +177,7 @@ try {
     reply.clearCookie("token", {
       httpOnly: true,
       secure: env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       path: "/",
     });
 
